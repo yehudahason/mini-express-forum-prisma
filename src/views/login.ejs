@@ -1,0 +1,39 @@
+<main>
+  <h2 class="page-title">התחברות</h2>
+
+  <% if (typeof error !== "undefined" && error) { %>
+    <p class="empty" style="color:#fca5a5;"><%= error %></p>
+  <% } %>
+
+  <% if (typeof success !== "undefined" && success) { %>
+    <p class="empty" style="color:#86efac;"><%= success %></p>
+  <% } %>
+
+  <form method="POST" action="/auth/login" autocomplete="on">
+    <input
+      type="email"
+      name="email"
+      placeholder="אימייל"
+      required
+      dir="ltr"
+      inputmode="email"
+      autocomplete="email"
+    />
+
+    <input
+      type="password"
+      name="password"
+      placeholder="סיסמה"
+      required
+      dir="ltr"
+      autocomplete="current-password"
+      minlength="6"
+    />
+
+    <button type="submit">התחבר</button>
+  </form>
+
+  <div class="redirect-links" style="margin-top: 1.2rem;">
+    <a href="/auth/signup">אין לך חשבון? הרשמה</a>
+  </div>
+</main>

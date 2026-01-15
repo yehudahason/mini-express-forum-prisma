@@ -1,0 +1,23 @@
+<main>
+  <!-- <h1>פוסטים אחרונים</h1> -->
+  <h1><%= posts.length %> - פוסטים אחרונים</h1>
+  <a href="/" class="back-link">עמוד ראשי ← </a>
+
+  <ul class="latest-posts">
+    <% posts.forEach(p => { %>
+    <li class="post-item">
+      <a href="/thread/<%= p.id %>" class="post-title"> <%= p.title %> </a>
+
+      <div class="meta">
+        בפורום:
+        <a href="/f/<%= p.Forum.id %>"> <%= p.Forum.name %> </a>
+
+        | מאת <b><%= p.author || "אנונימי" %></b>
+
+        | <%= formatDate(p.dataValues.last_reply_at || p.created_at) %> |
+        תגובות: <%= p.reply_count %>
+      </div>
+    </li>
+    <% }) %>
+  </ul>
+</main>

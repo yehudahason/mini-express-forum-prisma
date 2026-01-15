@@ -1,0 +1,16 @@
+<% if (totalPages > 1) { %>
+<nav class="pagination">
+  <% if (currentPage > 1) { %>
+  <a href="?page=<%= currentPage - 1 %>" class="page-btn">« הקודם</a>
+  <% } %>
+
+  <span class="page-info">
+    עמוד <%= currentPage %> מתוך <%= totalPages %>
+  </span>
+
+  <% if (currentPage < totalPages) { %>
+  <a href="?page=<%= currentPage + 1 %>" class="page-btn">הבא »</a>
+  <% } %>
+  <a href="?page=<%= totalPages %>" class="page-btn">עמוד אחרון</a>
+</nav>
+<% } %>

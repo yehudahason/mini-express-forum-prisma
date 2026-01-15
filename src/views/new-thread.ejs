@@ -1,0 +1,40 @@
+<main>
+  <section class="new-thread">
+    <h2>פתיחת נושא חדש</h2>
+    <a href="/" class="back-link">← דף הבית</a>
+    <form action="/f/<%= forum.id %>/threads" method="POST">
+      <input type="text" name="title" placeholder="כותרת" required />
+
+      <input type="text" name="author" placeholder="שם (לא חובה)" />
+
+      <!-- <textarea name="content" placeholder="תוכן ההודעה..." required></textarea> -->
+      <div class="emoji-wrapper">
+        <textarea
+          id="postContent"
+          name="content"
+          rows="5"
+          placeholder="תוכן ההודעה..."
+        ></textarea>
+
+        <button type="button" id="emojiBtn">😀</button>
+
+        <emoji-picker id="emojiPicker" style="display: none"></emoji-picker>
+      </div>
+      <button type="submit">פרסום נושא</button>
+    </form>
+  </section>
+</main>
+<script>
+  const btn = document.getElementById("emojiBtn");
+  const picker = document.getElementById("emojiPicker");
+  const textarea = document.getElementById("postContent");
+
+  btn.addEventListener("click", () => {
+    picker.style.display = picker.style.display === "none" ? "block" : "none";
+  });
+
+  picker.addEventListener("emoji-click", (event) => {
+    textarea.value += event.detail.unicode;
+    textarea.focus();
+  });
+</script>

@@ -1,0 +1,53 @@
+<main>
+  <h2 class="page-title">הרשמה</h2>
+
+  <% if (typeof error !== "undefined" && error) { %>
+  <p class="empty" style="color: #fca5a5"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/auth/signup" autocomplete="on">
+    <input
+      type="text"
+      name="username"
+      placeholder="שם משתמש"
+      maxlength="40"
+      autocomplete="nickname"
+    />
+
+    <input
+      type="email"
+      name="email"
+      placeholder="אימייל"
+      required
+      dir="ltr"
+      inputmode="email"
+      autocomplete="email"
+    />
+
+    <input
+      type="password"
+      name="password"
+      placeholder="סיסמה (לפחות 6 תווים)"
+      required
+      dir="ltr"
+      autocomplete="new-password"
+      minlength="6"
+    />
+
+    <input
+      type="password"
+      name="confirmPassword"
+      placeholder="אימות סיסמה"
+      required
+      dir="ltr"
+      autocomplete="new-password"
+      minlength="6"
+    />
+
+    <button type="submit">צור חשבון</button>
+  </form>
+
+  <div class="redirect-links" style="margin-top: 1.2rem">
+    <a href="/auth/login">כבר יש לך חשבון? התחברות</a>
+  </div>
+</main>

@@ -1,0 +1,36 @@
+<main>
+  <a href="/" class="back-link">עמוד ראשי ← </a>
+
+  <h1 class="page-title"><%= forum.name %></h1>
+
+  <% if (forum.description) { %>
+  <p class="meta"><%= forum.description %></p>
+  <% } %>
+  <a href="/f/<%= forum.id %>/new" class="new-thread-btn">
+    ✏️ פתיחת נושא חדש
+  </a>
+
+  <!-- THREAD LIST -->
+  <section class="threads">
+    <h2>רשימת נושאים</h2>
+    <% if (!threads || threads.length === 0) { %>
+
+    <p class="empty">אין עדיין נושאים בפורום זה.</p>
+
+    <% } else { %>
+
+    <ul class="thread-list">
+      <% threads.forEach(t => { %>
+      <li>
+        <a class="thread-title" href="/thread/<%= t.id %>"> <%= t.title %> </a>
+
+        <div class="meta">
+          מאת <%= t.author || "אנונימי" %> · <%= formatDate(t.created_at) %> ·
+          תגובות: <%= t.reply_count %>
+        </div>
+      </li>
+      <% }) %>
+    </ul>
+    <%- include("partials/pagination", { currentPage, totalPages }) %> <% } %>
+  </section>
+</main>

@@ -1,0 +1,33 @@
+<main>
+  <h1 class="page-title">אינדקס פורומים</h1>
+  <h4>
+    תפילה תשובה וצדקה מעבירים את רוע הגזירה - בראשית רבה &nbsp;
+    <img src="/logo.svg" alt="" class="logo" />
+  </h4>
+  <div class="btn-container">
+    <a href="/new-posts" class="btn-latest">🆕 פוסטים אחרונים</a>
+    <a href="/search" class="btn-search"
+      ><span> חפש</span> <img src="/srch.png" alt=""
+    /></a>
+  </div>
+
+  <% if (!forums || forums.length === 0) { %>
+  <p class="empty">לא קיימים פורומים.</p>
+  <% } else { %>
+  <ul class="thread-list">
+    <% forums.forEach(f => { %>
+    <li class="forum-card">
+      <a class="forum-link" href="/f/<%= f.id %>">
+        <h3 class="forum-name"><%= f.name %></h3>
+
+        <% if (f.description) { %>
+        <p class="forum-desc"><%= f.description %></p>
+        <% } %>
+
+        <span class="forum-enter"> →</span>
+      </a>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</main>

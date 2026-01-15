@@ -1,0 +1,73 @@
+<main>
+  <a href="/" class="back-link">עמוד ראשי ←</a>
+
+  <h1 class="page-title">חיפוש בפורום</h1>
+
+  <!-- ============================
+       SEARCH FORM
+  ============================= -->
+  <form action="/search" method="GET" class="search-form">
+    <input
+      type="text"
+      name="q"
+      placeholder="חפש מילה או משפט..."
+      value="<%= typeof query !== 'undefined' ? query : '' %>"
+      required
+    />
+    <button type="submit">חיפוש</button>
+  </form>
+
+  <hr />
+
+  <!-- ============================
+       NO SEARCH YET
+  ============================= -->
+  <% if (!query) { %>
+  <p class="empty">הקלד מילת חיפוש ולחץ על כפתור החיפוש.</p>
+  <% } %>
+
+  <!-- ============================
+       NO RESULTS FOUND
+  ============================= -->
+  <% if (query && results.length === 0) { %>
+  <p class="empty">לא נמצאו תוצאות עבור "<%= query %>".</p>
+  <% } %>
+
+  <!-- ============================
+       SHOW SEARCH RESULTS
+  ============================= -->
+  <% if (query && results.length > 0) { %>
+  <h2>תוצאות עבור "<%= query %>"</h2>
+
+  <ul class="search-results">
+    <% results.forEach(item => { %>
+    <li class="search-item">
+      <!-- If thread itself matched -->
+      <% if (item.matchesInThread) { %>
+      <p class="meta">נמצא התאמה בכותרת</p>
+      <% } %>
+      <!-- Thread Title -->
+      <a class="thread-title" href="/thread/<%= item.thread.id %>">
+        <%= item.thread.title || ("נושא #" + item.thread.id) %>
+      </a>
+
+      <!-- Replies that matched keyword -->
+      <% if (item.replyMatches.length > 0) { %>
+      <div class="reply-matches">
+        <p><strong>תגובות מתאימות:</strong></p>
+        <ul>
+          <% item.replyMatches.forEach(r => { %>
+          <li class="reply-match">
+            <strong><%= r.author || "אנונימי" %>:</strong>
+            <span><%- r.content %></span>
+            <div class="meta-small"><%= formatDate(r.created_at) %></div>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</main>

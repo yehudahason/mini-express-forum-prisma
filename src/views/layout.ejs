@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <!-- <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-PL9W9RRMZL"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-PL9W9RRMZL");
+    </script> -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="description" content="ספר פתרון חלומות לרב האי גאון " />
+    <meta
+      name="keywords"
+      content="dreams, hai gaon, פתרון חלומות, pitron-halomoṭ, רב האי גאון"
+    />
+    <meta name="author" content="Yehuda Hason" />
+    <title><%= title || "Mini Forum" %></title>
+    <link rel="stylesheet" href="/style.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/emoji-picker-element@^1/index.js"
+    ></script>
+  </head>
+  <body>
+    <header class="main-header">
+      <h1><a href="/">Pitron halomot</a></h1>
+
+      <nav class="auth-nav">
+        <% if (user) { %>
+        <span> שלום <%= user.user_metadata?.username || user.email %> </span>
+        <% } %> <% if (user) { %>
+        <form method="POST" action="/auth/logout">
+          <button type="submit" class="link-btn">התנתקות</button>
+        </form>
+        <% } else { %>
+        <a href="/auth/login">התחברות</a>
+        <a href="/auth/signup">הרשמה</a>
+        <% } %>
+      </nav>
+    </header>
+
+    <%- body %>
+
+    <script>
+      //@ts-ignore
+      window.nl_color = "yellow";
+      //@ts-ignore
+      window.nl_compact = "1";
+      //@ts-ignore
+      window.nl_dir = "/nl-files/";
+    </script>
+    <script src="/nagishli.js?v=2.3" charset="utf-8" defer></script>
+
+    <script>
+      const links = document.querySelectorAll("a");
+      const current = window.location.pathname;
+
+      links.forEach((link) => {
+        if (link.getAttribute("href") === current) {
+          link.classList.add("active");
+        }
+      });
+    </script>
+  </body>
+</html>

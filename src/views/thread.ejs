@@ -1,0 +1,83 @@
+<main>
+  <a href="/" class="back-link">עמוד ראשי ← </a>
+  <a href="/f/<%= forumId %>" class="back-link"> &nbsp; חזרה לפורום ←</a>
+  <h1><%= thread.title %></h1>
+  <article class="thread">
+    <!-- <h2><%= thread.title %></h2> -->
+    <br />
+    <div class="thread-content"><%- thread.content %></div>
+    <div class="meta">
+      נכתב על ידי &nbsp;<strong><%= thread.author || "אנונימי" %></strong>
+      <!-- · <%= new Date(thread.created_at).toLocaleString() %> -->
+      &nbsp; <%= formatDate(thread.created_at) %>
+    </div>
+  </article>
+
+  <section class="replies">
+    <h3>תגובות</h3>
+
+    <% if (replies.length === 0) { %>
+    <p class="empty">אין תגובות עדיין.</p>
+    <% } else { %>
+    <ul class="reply-list">
+      <% replies.forEach(r => { %>
+      <li class="reply">
+        <strong><%= r.author || "אנונימי" %></strong>
+        <div><%- r.content %></div>
+        <%= formatDate(r.created_at) %>
+        <form
+          action="/thread/<%= thread.id %>/replies/<%= r.id %>/delete"
+          method="POST"
+          style="margin-top: 0.4rem"
+        >
+          <button class="delete-btn" onclick="return confirm('למחוק תגובה?');">
+            מחיקה
+          </button>
+        </form>
+      </li>
+      <% }) %>
+    </ul>
+    <%- include("partials/pagination", { currentPage, totalPages }) %> <% } %>
+  </section>
+
+  <section class="new-reply">
+    <h3>הוסף תגובה</h3>
+
+    <form method="POST" action="/thread/<%= thread.id %>/replies">
+      <input type="text" name="author" placeholder="שם" />
+      <!-- <textarea name="content" placeholder="כתוב תגובה..." required></textarea> -->
+      <div class="emoji-wrapper">
+        <textarea
+          id="postContent"
+          name="content"
+          rows="5"
+          placeholder="הוסף תגובה"
+        ></textarea>
+
+        <button type="button" id="emojiBtn">😀</button>
+
+        <emoji-picker id="emojiPicker" style="display: none"></emoji-picker>
+      </div>
+      <button type="submit">שלח תגובה</button>
+    </form>
+
+    <form action="/thread/<%= thread.id %>/delete" method="POST">
+      <button class="delete-thread-btn">מחיקת נושא</button>
+    </form>
+  </section>
+</main>
+
+<script>
+  const btn = document.getElementById("emojiBtn");
+  const picker = document.getElementById("emojiPicker");
+  const textarea = document.getElementById("postContent");
+
+  btn.addEventListener("click", () => {
+    picker.style.display = picker.style.display === "none" ? "block" : "none";
+  });
+
+  picker.addEventListener("emoji-click", (event) => {
+    textarea.value += event.detail.unicode;
+    textarea.focus();
+  });
+</script>
