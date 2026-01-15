@@ -1,7 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { createClient } from "@supabase/supabase-js";
-import { insertUserNic } from "../utils/insertUserNic.js";
 
 const router = express.Router();
 
