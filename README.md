@@ -11,10 +11,10 @@
 - Check out logs to see if database up and connected
 
 ```
-docker logs forum_app
+docker logs forum_app_dev
 ```
 
-- Open http://localhost:3333/
+- Open http://localhost:4444/
 
 - After every node js addition of packages run
 
