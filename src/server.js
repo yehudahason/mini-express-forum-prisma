@@ -6,30 +6,32 @@ import expressLayouts from "express-ejs-layouts";
 import cors from "cors";
 // import { sequelize } from "./models/models.js";
 import { logRequests } from "./utils/logMiddleware.js";
-import forum from "./routes/forumroutes.js";
 // import syncDB from "./sync.js";
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import router from "./routes/authroutes.js";
 import cookieParser from "cookie-parser";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import forum from "./routes/forumroutes.js";
 
-// const supabase = createClient(
-//   process.env.SUPABASE_URL,
-//   process.env.SUPABASE_ANON_KEY
-// );
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3333",
+  "http://localhost:4444",
   "https://pitron-halomot.org",
   "https://www.pitron-halomot.org",
   "https://forum.pitron-halomot.org",
 ];
 
-app.use(logRequests);
+// app.use(logRequests);
 app.use(
   cors({
     origin: function (origin, callback) {

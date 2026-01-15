@@ -1,17 +1,17 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-// import { createClient } from "@supabase/supabase-js";
-// import { insertUserNic } from "../utils/insertUserNic.js";
+import { createClient } from "@supabase/supabase-js";
+import { insertUserNic } from "../utils/insertUserNic.js";
 
 const router = express.Router();
 
 router.use(cookieParser());
 router.use(express.urlencoded({ extended: true }));
 
-// const supabase = createClient(
-//   process.env.SUPABASE_URL,
-//   process.env.SUPABASE_ANON_KEY
-// );
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 // Views
 router.get("/auth/login", (req, res) => {
