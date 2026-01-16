@@ -7,7 +7,7 @@
     "dev": "tsx --watch src/server.js",
     "clean": "rimraf dist/public dist/views dist",
     "copy": "cp -r src/views dist/views && cp -r src/public dist/public",
-    "build": "npm run clean && tsc && npm run copy",
+    "build":  "npm run clean && prisma generate && tsc && npm run copy" ,
     "start": "node dist/server.js"
   },
   "keywords": [],
