@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/server.js",
+    "start": "node dist/server.js",
     "dev": "tsx --watch src/server.js",
     "build": "tsc && npm run clean && npm run copy",
     "clean": "rimraf dist/public dist/views",
