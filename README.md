@@ -8,6 +8,8 @@
  npm install
 ```
 
+- Set up db with  prisma chcema
+
 - run dev Server
 
 ```
