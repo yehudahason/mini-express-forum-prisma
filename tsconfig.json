@@ -1,9 +1,30 @@
 {
   "compilerOptions": {
+   
     "module": "ESNext",
     "moduleResolution": "node",
     "target": "ES2023",
+  
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": false,
+
+    /* Output */
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": true,
+
+    /* Type Checking */
     "strict": true,
-    "esModuleInterop": true
-  }
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    /* Emit */
+    "noEmitOnError": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist" , "generated" ,"src/public" ,"src/views"]
 }
