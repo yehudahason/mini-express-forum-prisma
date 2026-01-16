@@ -8,7 +8,7 @@
  npm install
 ```
 
-- Set up db with  prisma chcema
+- Set up database with  the prisma shcema
 
 - run dev Server
 
