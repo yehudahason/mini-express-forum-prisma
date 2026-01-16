@@ -1,29 +1,31 @@
-### Mini Forum with Express js POSTGRES DB and pgAdmin Panel
+### Mini Forum with Express js Postgres db and Prisma ORM
 
-- Create .env file like env.example with your own credentials
-- Bulid docker containers
+- Create .env file like env.example
 
-```
- docker compose up -d
-```
-
-- At first you have to Wait a minute or so for containers to get up
-- Check out logs to see if database up and connected
+- install 
 
 ```
-docker logs forum_app_dev
+ npm install
+```
+
+- run dev Server
+
+```
+npm run dev
 ```
 
 - Open http://localhost:4444/
 
-- After every node js addition of packages run
+- For production 
 
 ```
- docker compose down
- docker compose build --no-cache
- docker compose up -d
+ npm run build
 ```
 
-- For pgAdmin dashboard open http://localhost:2020/
+- For prisma studio
+
+```
+npm prisma studio 
+```
 
 - In DB forum table add rows for your own forums
