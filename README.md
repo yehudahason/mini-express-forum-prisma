@@ -25,7 +25,7 @@ npm run dev
 - For prisma studio
 
 ```
-npm prisma studio 
+npx prisma studio 
 ```
 
 - In DB forum table add rows for your own forums
