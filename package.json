@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
     "dev": "tsx --watch src/server.js",
-    "build": "tsc && npm run clean && npm run copy",
-    "clean": "rimraf dist/public dist/views",
-    "copy": "cp -r src/views dist/views && cp -r src/public dist/public"
+    "clean": "rimraf dist/public dist/views dist",
+    "copy": "cp -r src/views dist/views && cp -r src/public dist/public",
+    "build": "npm run clean && tsc && npm run copy",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
