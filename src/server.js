@@ -27,6 +27,7 @@ const allowedOrigins = [
   "https://pitron-halomot.org",
   "https://www.pitron-halomot.org",
   "https://forum.pitron-halomot.org",
+  "https://mini-express-forum-prisma.onrender.com"
 ];
 
 // app.use(logRequests);
