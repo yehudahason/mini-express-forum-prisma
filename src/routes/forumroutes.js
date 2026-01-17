@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import sanitizeHtml from "sanitize-html";
 import { prisma } from "../../lib/prisma.ts"; // <-- adjust path if needed
+import { linkify } from "../utils/linkfy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,6 +127,7 @@ forum.post("/f/:forumId/threads", async (req, res) => {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
   });
+  content = linkify(content);
   content = `<pre class="responsive">` + content + "</pre>";
 
   try {
@@ -320,6 +322,7 @@ forum.post("/thread/:id/replies", async (req, res) => {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
   });
+  content = linkify(content);
   content = "<pre>" + content + "</pre>";
 
   try {
