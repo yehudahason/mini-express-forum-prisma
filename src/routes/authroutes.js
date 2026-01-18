@@ -1,6 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase.js";
 import { create } from "node:domain";
 const router = express.Router();
 import { createUserNic } from "../utils/createUserNic.js";
