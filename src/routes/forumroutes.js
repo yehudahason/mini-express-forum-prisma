@@ -5,7 +5,8 @@ import { fileURLToPath } from "url";
 import sanitizeHtml from "sanitize-html";
 import { prisma } from "../../lib/prisma.ts"; // <-- adjust path if needed
 import { linkify } from "../utils/linkfy.js";
-
+import { requireUser } from "../middleware/requireUser.js";
+import { getUser } from "../middleware/getUser.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,7 +15,7 @@ const forum = express.Router();
 /* ======================================================
    HOME PAGE — LIST FORUMS
 ====================================================== */
-forum.get("/", async (req, res) => {
+forum.get("/", getUser , async (req, res) => {
   try {
     const forums = await prisma.forum.findMany({
       orderBy: { id: "asc" },
@@ -27,6 +28,7 @@ forum.get("/", async (req, res) => {
     return res.render("home", {
       title: "PITRON HALOMOT",
       forums,
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error loading forums:", err);
@@ -38,7 +40,7 @@ forum.get("/", async (req, res) => {
    API — LIST THREADS WITH PAGINATION
    GET /f/:id?page=1
 ====================================================== */
-forum.get("/f/:id", async (req, res) => {
+forum.get("/f/:id",requireUser, async (req, res) => {
   const forumId = Number(req.params.id);
   if (Number.isNaN(forumId)) return res.status(400).send("Invalid forum id");
 
@@ -89,6 +91,7 @@ forum.get("/f/:id", async (req, res) => {
       threads,
       currentPage: page,
       totalPages,
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error loading forum:", err);
@@ -99,7 +102,7 @@ forum.get("/f/:id", async (req, res) => {
 /* ======================================================
    NEW THREAD PAGE
 ====================================================== */
-forum.get("/f/:id/new", async (req, res) => {
+forum.get("/f/:id/new",requireUser, async (req, res) => {
   const forumId = Number(req.params.id);
 
   const forumData = await prisma.forum.findUnique({
@@ -111,18 +114,19 @@ forum.get("/f/:id/new", async (req, res) => {
   res.render("new-thread", {
     title: "פתיחת נושא חדש",
     forum: forumData,
+    user : req.user || null,
   });
 });
 
 /* ======================================================
    POST NEW THREAD
 ====================================================== */
-forum.post("/f/:forumId/threads", async (req, res) => {
+forum.post("/f/:forumId/threads",  requireUser ,async (req, res) => {
   const forumId = Number(req.params.forumId);
-
+   const user = req.user;
   const title = sanitizeHtml(req.body.title, { allowedTags: [] });
-  const author = sanitizeHtml(req.body.author, { allowedTags: [] });
-
+  // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
+const author = sanitizeHtml(user.user_metadata?.username || "אורח", { allowedTags: [] });
   let content = sanitizeHtml(req.body.content, {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
@@ -151,7 +155,7 @@ forum.post("/f/:forumId/threads", async (req, res) => {
    API — VIEW THREAD WITH PAGINATED REPLIES
    GET /thread/:id?page=1
 ====================================================== */
-forum.get("/thread/:id", async (req, res) => {
+forum.get("/thread/:id", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
 
   const page = Number(req.query.page) || 1;
@@ -195,6 +199,7 @@ forum.get("/thread/:id", async (req, res) => {
       replies,
       currentPage: page,
       totalPages,
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error loading thread:", err);
@@ -206,7 +211,7 @@ forum.get("/thread/:id", async (req, res) => {
 // SEARCH FORUM THREAD AND REPLIES
 // /search?q=query
 // ###################################
-forum.get("/search", async (req, res) => {
+forum.get("/search", requireUser,async (req, res) => {
   const q = req.query.q?.trim();
 
   if (!q) {
@@ -214,6 +219,7 @@ forum.get("/search", async (req, res) => {
       query: "",
       results: [],
       title: "search",
+      user : req.user || null,
     });
   }
 
@@ -303,6 +309,7 @@ forum.get("/search", async (req, res) => {
       results,
       title: "search",
       formatDate: req.app.locals.formatDate,
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Search error:", err);
@@ -312,9 +319,8 @@ forum.get("/search", async (req, res) => {
 
 
 // PAGE — NEW REPLY (separate page)
-forum.get("/thread/:id/reply", async (req, res) => {
+forum.get("/thread/:id/reply", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
-
   try {
     const thread = await prisma.thread.findUnique({
       where: { id: threadId },
@@ -329,6 +335,7 @@ forum.get("/thread/:id/reply", async (req, res) => {
         forum_id: thread.forumId,
         created_at: thread.createdAt,
       },
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error loading reply page:", err);
@@ -340,11 +347,12 @@ forum.get("/thread/:id/reply", async (req, res) => {
 /* ======================================================
    POST A REPLY
 ====================================================== */
-forum.post("/thread/:id/replies", async (req, res) => {
+forum.post("/thread/:id/replies", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
 
-  const author = sanitizeHtml(req.body.author, { allowedTags: [] });
-
+  // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
+const user = req.user;
+const author = sanitizeHtml(user.user_metadata?.username || "אורח", { allowedTags: [] });
   let content = sanitizeHtml(req.body.content, {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
@@ -364,6 +372,7 @@ forum.post("/thread/:id/replies", async (req, res) => {
     res.render("redirect", {
       thread_id: threadId,
       title: "redirect",
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error creating reply:", err);
@@ -374,9 +383,12 @@ forum.post("/thread/:id/replies", async (req, res) => {
 /* ======================================================
    DELETE THREAD
 ====================================================== */
-forum.post("/thread/:id/delete", async (req, res) => {
+forum.post("/thread/:id/delete", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
-
+  const user = req.user;
+  if (user.user_metadata.username !== "xt") {
+    return res.status(403).send("Forbidden");    
+  }
   try {
     const thread = await prisma.thread.findUnique({
       where: { id: threadId },
@@ -403,7 +415,11 @@ forum.post("/thread/:id/delete", async (req, res) => {
 /* ======================================================
    DELETE REPLY
 ====================================================== */
-forum.post("/thread/:threadId/replies/:replyId/delete", async (req, res) => {
+forum.post("/thread/:threadId/replies/:replyId/delete", requireUser, async (req, res) => {
+  const user = req.user;
+  if (user.user_metadata.username !== "xt") {
+    return res.status(403).send("Forbidden");    
+  }
   const threadId = Number(req.params.threadId);
   const replyId = Number(req.params.replyId);
 
@@ -421,7 +437,7 @@ forum.post("/thread/:threadId/replies/:replyId/delete", async (req, res) => {
 });
 
 //New Posts - recent activity across all forums
-forum.get("/new-posts", async (req, res) => {
+forum.get("/new-posts", requireUser, async (req, res) => {
   try {
     const rows = await prisma.$queryRaw`
       SELECT
@@ -459,6 +475,7 @@ forum.get("/new-posts", async (req, res) => {
     res.render("new-posts", {
       title: "פוסטים אחרונים",
       posts,
+      user : req.user || null,
     });
   } catch (err) {
     console.error("Error fetching posts:", err);

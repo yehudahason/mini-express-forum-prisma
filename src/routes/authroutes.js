@@ -1,16 +1,13 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import { createClient } from "@supabase/supabase-js";
-
+import { supabase } from "../lib/supabase";
+import { create } from "node:domain";
 const router = express.Router();
-
+import { createUserNic } from "../utils/createUserNic.js";
 router.use(cookieParser());
 router.use(express.urlencoded({ extended: true }));
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+
 
 // Views
 router.get("/auth/login", (req, res) => {
@@ -38,7 +35,7 @@ router.post("/auth/signup", async (req, res) => {
       .render("signup", { title: "Signup", error: "הסיסמאות לא תואמות" });
   }
   try {
-    // await insertUserNic(email, username);
+    await createUserNic({ email, username });
   } catch (err) {
     console.log("Error inserting user nic:", err);
     return res
