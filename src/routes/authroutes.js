@@ -37,7 +37,7 @@ router.post("/auth/signup", async (req, res) => {
   try {
     await createUserNic({ email, username });
   } catch (err) {
-    console.log("Error inserting user nic:", err);
+    console.log("Error inserting user nic:", err.message);
     return res
       .status(400)
       .render("signup", { title: "Signup", error: "שם משתמש קיים" });
