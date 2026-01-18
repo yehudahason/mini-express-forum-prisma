@@ -25,11 +25,7 @@
         <strong><%= r.author || "אנונימי" %></strong>
         <div><%- r.content %></div>
         <%= formatDate(r.created_at) %>
-        <form
-          action="/thread/<%= thread.id %>/replies/<%= r.id %>/delete"
-          method="POST"
-          style="margin-top: 0.4rem"
-        >
+        <form action="/thread/<%= thread.id %>/replies/<%= r.id %>/delete" method="POST" style="margin-top: 0.4rem">
           <button class="delete-btn" onclick="return confirm('למחוק תגובה?');">
             מחיקה
           </button>
@@ -39,30 +35,15 @@
     </ul>
     <%- include("partials/pagination", { currentPage, totalPages }) %> <% } %>
   </section>
-  <a href="/thread/<%= thread.id %>/reply" class="btn">
-  הוסף תגובה
-</a>
 
+  <div class="flex-container">
+
+    <a href="/thread/<%= thread.id %>/reply" class="link-btn">
+      הוסף תגובה
+    </a>
+  </div>
   <section class="new-reply">
-    <h3>הוסף תגובה</h3>
 
-    <form method="POST" action="/thread/<%= thread.id %>/replies">
-      <input type="text" name="author" placeholder="שם" />
-      <!-- <textarea name="content" placeholder="כתוב תגובה..." required></textarea> -->
-      <div class="emoji-wrapper">
-        <textarea
-          id="postContent"
-          name="content"
-          rows="5"
-          placeholder="הוסף תגובה"
-        ></textarea>
-
-        <button type="button" id="emojiBtn">😀</button>
-
-        <emoji-picker id="emojiPicker" style="display: none"></emoji-picker>
-      </div>
-      <button type="submit">שלח תגובה</button>
-    </form>
 
     <form action="/thread/<%= thread.id %>/delete" method="POST">
       <button class="delete-thread-btn">מחיקת נושא</button>
