@@ -310,6 +310,33 @@ forum.get("/search", async (req, res) => {
   }
 });
 
+
+// PAGE — NEW REPLY (separate page)
+forum.get("/thread/:id/reply", async (req, res) => {
+  const threadId = Number(req.params.id);
+
+  try {
+    const thread = await prisma.thread.findUnique({
+      where: { id: threadId },
+    });
+
+    if (!thread) return res.status(404).send("Thread not found");
+
+    res.render("new-reply", {
+      title: "תגובה חדשה",
+      thread: {
+        ...thread,
+        forum_id: thread.forumId,
+        created_at: thread.createdAt,
+      },
+    });
+  } catch (err) {
+    console.error("Error loading reply page:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 /* ======================================================
    POST A REPLY
 ====================================================== */

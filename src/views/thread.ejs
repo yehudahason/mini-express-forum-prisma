@@ -39,6 +39,9 @@
     </ul>
     <%- include("partials/pagination", { currentPage, totalPages }) %> <% } %>
   </section>
+  <a href="/thread/<%= thread.id %>/reply" class="btn">
+  הוסף תגובה
+</a>
 
   <section class="new-reply">
     <h3>הוסף תגובה</h3>
