@@ -97,21 +97,21 @@ router.post("/auth/login", async (req, res) => {
       .render("login", { title: "Login", error: error.message, success: null });
   }
 
-  res.cookie("sb_access_token", data.session.access_token, {
+  res.cookie("pbap", data.session.access_token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
-  res.cookie("sb_refresh_token", data.session.refresh_token, {
+  res.cookie("pbrp", data.session.refresh_token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
-  const cookieToken = signToken({ email, username: data.user.user_metadata.username });
-  res.cookie("jwt_token", cookieToken, {
+  const cookieToken = signToken({  username: data.user.user_metadata.username });
+  res.cookie("98479", cookieToken, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -121,9 +121,9 @@ router.post("/auth/login", async (req, res) => {
 });
 
 router.post("/auth/logout", (req, res) => {
-  res.clearCookie("sb_access_token");
-  res.clearCookie("sb_refresh_token");
-  res.clearCookie("jwt_token");
+  res.clearCookie("pbap");
+  res.clearCookie("pbrp");
+  res.clearCookie("98479");
   res.redirect("/");
 });
 

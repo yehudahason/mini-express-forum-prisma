@@ -1,7 +1,7 @@
 import { verifyToken } from "../utils/verifyToken.js";
 export async function getUser(req, res, next) {
 
-  const token = req.cookies?.jwt_token;
+  const token = req.cookies?.["98479"];
 
   if (!token) {
     req.user = null;
