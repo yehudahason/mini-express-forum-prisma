@@ -132,7 +132,7 @@ app.use("/", forum);
 /* ======================================================
    START SERVER
 ====================================================== */
-const PORT = process.env.PORT || 4444;
+const PORT = process.env.PORT || 4422;
 
 (async () => {
   try {
