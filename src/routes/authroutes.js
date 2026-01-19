@@ -5,7 +5,7 @@ const router = express.Router();
 import { createUserNic } from "../utils/createUserNic.js";
 router.use(cookieParser());
 router.use(express.urlencoded({ extended: true }));
-
+import { signToken } from "../utils/signToken.js";
 
 
 // Views
@@ -110,13 +110,20 @@ router.post("/auth/login", async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
-
+  const cookieToken = signToken({ email, username: data.user.user_metadata.username });
+  res.cookie("jwt_token", cookieToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 1000 * 60 * 60 * 24 * 365,
+  });
   return res.redirect("/");
 });
 
 router.post("/auth/logout", (req, res) => {
   res.clearCookie("sb_access_token");
   res.clearCookie("sb_refresh_token");
+  res.clearCookie("jwt_token");
   res.redirect("/");
 });
 

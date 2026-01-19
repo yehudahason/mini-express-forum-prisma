@@ -514,7 +514,7 @@ button.delete-thread-btn {
 
 /* ===== Single Thread Page ===== */
 article.thread {
-  padding: 1rem 1rem 1.2rem;
+  padding: 0rem 1rem 1.2rem;
   margin-bottom: 1.5rem;
   border-radius: 14px;
   background: radial-gradient(circle at top left, #1d4ed8 0, #020617 55%);

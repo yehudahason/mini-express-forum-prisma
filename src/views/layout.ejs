@@ -37,7 +37,7 @@
 
       <nav class="auth-nav">
         <% if (user) { %>
-        <span> שלום <%= user.user_metadata?.username || user.email %> </span>
+        <span> שלום <%= user?.username || user.email %> </span>
         <% } %> <% if (user) { %>
         <form method="POST" action="/auth/logout">
           <button type="submit" class="link-btn">התנתקות</button>

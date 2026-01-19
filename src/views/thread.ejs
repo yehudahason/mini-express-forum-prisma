@@ -5,7 +5,9 @@
   <article class="thread">
     <!-- <h2><%= thread.title %></h2> -->
     <br />
-    <div class="thread-content"><%- thread.content %></div>
+    <div class="thread-content">
+      <%-thread.author || "אנונימי" %>
+      <%- thread.content %></div>
     <div class="meta"  style="display: flex;justify-content: center;gap:25px
     ;align-items: center;">
       <span>

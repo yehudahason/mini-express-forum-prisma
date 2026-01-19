@@ -126,7 +126,7 @@ forum.post("/f/:forumId/threads",  requireUser ,async (req, res) => {
    const user = req.user;
   const title = sanitizeHtml(req.body.title, { allowedTags: [] });
   // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
-const author = sanitizeHtml(user.user_metadata?.username || "אורח", { allowedTags: [] });
+const author = sanitizeHtml(user.username || "אורח", { allowedTags: [] });
   let content = sanitizeHtml(req.body.content, {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
@@ -352,7 +352,7 @@ forum.post("/thread/:id/replies", requireUser, async (req, res) => {
 
   // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
 const user = req.user;
-const author = sanitizeHtml(user.user_metadata?.username || "אורח", { allowedTags: [] });
+const author = sanitizeHtml(user.username || "אורח", { allowedTags: [] });
   let content = sanitizeHtml(req.body.content, {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
