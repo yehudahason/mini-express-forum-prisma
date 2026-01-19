@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase.js";
-
 export async function getUser(req, res, next) {
+
   const token = req.cookies?.sb_access_token;
 
   if (!token) {

@@ -385,8 +385,9 @@ const author = sanitizeHtml(user.user_metadata?.username || "אורח", { allowe
 ====================================================== */
 forum.post("/thread/:id/delete", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
+  const adminEmail = process.env.ADMIN_EMAIL;
   const user = req.user;
-  if (user.user_metadata.username !== "xt") {
+  if (user.email !== adminEmail) {
     return res.status(403).send("Forbidden");    
   }
   try {
@@ -416,8 +417,9 @@ forum.post("/thread/:id/delete", requireUser, async (req, res) => {
    DELETE REPLY
 ====================================================== */
 forum.post("/thread/:threadId/replies/:replyId/delete", requireUser, async (req, res) => {
+  const adminEmail = process.env.ADMIN_EMAIL;
   const user = req.user;
-  if (user.user_metadata.username !== "xt") {
+  if (user.email !== adminEmail) {
     return res.status(403).send("Forbidden");    
   }
   const threadId = Number(req.params.threadId);
