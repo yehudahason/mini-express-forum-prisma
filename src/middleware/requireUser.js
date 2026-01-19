@@ -2,7 +2,7 @@ import { verifyToken } from "../utils/verifyToken.js";
 
 export async function requireUser(req, res, next) {
 
-  const token = req.cookies?.jwt_token;
+  const token = req.cookies?.["98479"];
   if (!token) return res.render("login", { title: "Login", error: "כניסה לרשומים בלבד", success: null });
 
   try {
