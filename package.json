@@ -30,14 +30,13 @@
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.17.1",
     "pg-hstore": "^2.3.4",
-    "sanitize-html": "^2.17.0",
-    "rimraf": "^6.1.2"
+    "rimraf": "^6.1.2",
+    "sanitize-html": "^2.17.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.8",
     "@types/pg": "^8.16.0",
     "prisma": "^7.2.0",
-    "rimraf": "^6.1.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
