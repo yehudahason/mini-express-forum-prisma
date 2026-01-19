@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import sanitizeHtml from "sanitize-html";
-import { prisma } from "../../lib/prisma.ts"; // <-- adjust path if needed
+import { prisma } from "../lib/prisma.js"; // <-- adjust path if needed
 import { linkify } from "../utils/linkfy.js";
 import { requireUser } from "../middleware/requireUser.js";
 import { getUser } from "../middleware/getUser.js";
