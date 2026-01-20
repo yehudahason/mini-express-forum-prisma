@@ -718,7 +718,10 @@ section.replies {
   main {
     padding: 1rem 0.9rem;
   }
-
+.main-header{
+    flex-direction: column;
+    gap: 0.5rem;
+}
   .thread-list li {
     padding-inline: 0.75rem;
   }
@@ -729,6 +732,9 @@ section.replies {
 
   .search-form {
     flex-direction: column;
+  }
+  .auth-nav{
+    flex-wrap: wrap;
   }
 }
 

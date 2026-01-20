@@ -39,7 +39,7 @@ router.post("/auth/signup", async (req, res) => {
     console.log("Error inserting user nic:", err.message);
     return res
       .status(400)
-      .render("signup", { title: "Signup", error: "שם משתמש קיים" });
+      .render("signup", { title: "Signup", error: "שם משתמש ו/או אימייל קיים" });
   }
   const { data, error } = await supabase.auth.signUp({
     email,
