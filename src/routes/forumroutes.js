@@ -6,16 +6,15 @@ import sanitizeHtml from "sanitize-html";
 import { prisma } from "../lib/prisma.js"; // <-- adjust path if needed
 import { linkify } from "../utils/linkfy.js";
 import { requireUser } from "../middleware/requireUser.js";
-import { getUser } from "../middleware/getUser.js";
+import { get } from "http";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const forum = express.Router();
 
 /* ======================================================
    HOME PAGE — LIST FORUMS
 ====================================================== */
-forum.get("/", getUser , async (req, res) => {
+forum.get("/", async (req, res) => {
   try {
     const forums = await prisma.forum.findMany({
       orderBy: { id: "asc" },
@@ -35,6 +34,7 @@ forum.get("/", getUser , async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 /* ======================================================
    API — LIST THREADS WITH PAGINATION

@@ -11,7 +11,8 @@ import cookieParser from "cookie-parser";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import forum from "./routes/forumroutes.js";
-
+import { get } from "http";
+import { getUser } from "./middleware/getUser.js";
 // Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -75,51 +76,20 @@ app.use(
 );
 
 // app.use(globalLimiter);
+//view engine setup
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(expressLayouts);
 app.set("layout", "layout");
 
-app.post("/set-username", async (req, res) => {
-  const { username } = req.body;
+app.use(getUser);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return res.sendStatus(401);
-
-  const { error } = await supabase.from("profiles").insert({
-    id: user.id,
-    username,
-  });
-
-  if (error) {
-    if (error.code === "23505") {
-      return res.status(409).json({ error: "Username already taken" });
-    }
-    return res.status(400).json({ error: error.message });
+app.get("/me", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
-  // optional mirror into metadata
-  await supabase.auth.updateUser({
-    data: { username },
-  });
-
-  res.json({ username });
-});
-
-app.use(async (req, res, next) => {
-  const accessToken = req.cookies?.sb_access_token;
-
-  if (!accessToken) {
-    res.locals.user = null;
-    return next();
-  }
-
-  const { data } = await supabase.auth.getUser(accessToken);
-  res.locals.user = data?.user || null;
-  next();
+  res.json(req.user);
 });
 
 /* ======================================================

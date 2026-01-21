@@ -1,12 +1,13 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { supabase } from "../lib/supabase.js";
-const router = express.Router();
 import { createUserNic } from "../utils/createUserNic.js";
+import { signToken } from "../utils/signToken.js";
+import { get } from "http";
+
+const router = express.Router();
 router.use(cookieParser());
 router.use(express.urlencoded({ extended: true }));
-import { signToken } from "../utils/signToken.js";
-
 
 // Views
 router.get("/auth/login", (req, res) => {
@@ -66,14 +67,14 @@ router.post("/auth/signup", async (req, res) => {
   }
 
   // If confirmations are OFF, you get a session immediately
-  res.cookie("sb_access_token", data.session.access_token, {
+  res.cookie("pbap", data.session.access_token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
-  res.cookie("sb_refresh_token", data.session.refresh_token, {
+  res.cookie("pbrp", data.session.refresh_token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
