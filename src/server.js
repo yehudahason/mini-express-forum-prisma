@@ -28,7 +28,7 @@ const allowedOrigins = [
   "https://pitron-halomot.org",
   "https://www.pitron-halomot.org",
   "https://forum.pitron-halomot.org",
-  "https://home.pitron-halomot.org"
+  "https://lab.pitron-halomot.org"
 ];
 
 // app.use(logRequests);

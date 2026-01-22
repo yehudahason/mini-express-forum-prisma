@@ -1,0 +1,17 @@
+To                         Action      From
+--                         ------      ----
+80                         ALLOW       Anywhere                  
+443                        ALLOW       Anywhere                  
+22/tcp                     ALLOW       Anywhere                  
+Anywhere on docker0        ALLOW       Anywhere                  
+Anywhere                   ALLOW       172.18.0.0/16             
+80 (v6)                    ALLOW       Anywhere (v6)             
+443 (v6)                   ALLOW       Anywhere (v6)             
+22/tcp (v6)                ALLOW       Anywhere (v6)             
+Anywhere (v6) on docker0   ALLOW       Anywhere (v6)             
+
+Anywhere                   ALLOW OUT   Anywhere on docker0       
+Anywhere (v6)              ALLOW OUT   Anywhere (v6) on docker0  
+
+80/tcp                     ALLOW FWD   Anywhere                  
+80/tcp (v6)                ALLOW FWD   Anywhere (v6)
