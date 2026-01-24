@@ -1,0 +1,78 @@
+name: Deploy mini-forum (Node + Prisma + PM2)
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure deploy dir exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -eux
+            mkdir -p ${{ secrets.DEPLOY_PATH }}
+
+      # Upload only what's needed to RUN in production
+      - name: Upload build to droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: |
+            dist/**
+            package.json
+            package-lock.json
+            prisma/**
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Install prod deps, migrate, restart PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -eux
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Install ONLY production deps on the server
+            npm ci --omit=dev
+
+            # Prisma client must exist on server too (node_modules)
+            npx prisma generate
+
+            # If you use migrations, uncomment ONE of these:
+            # npx prisma migrate deploy
+
+            # Or (not recommended long-term) push schema directly:
+            # npx prisma db push
+
+            # Start/restart app
+            pm2 delete mini-forum || true
+            pm2 start "node dist/server.js" --name mini-forum
+            pm2 save
+            pm2 status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
