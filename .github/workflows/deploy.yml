@@ -31,6 +31,15 @@ jobs:
           script: |
             set -eux
             mkdir -p ${{ secrets.DEPLOY_PATH }}
+            
+      - name: Debug files to upload
+        run: |
+          pwd
+          ls -la
+          echo "---- dist ----"
+          ls -la dist || true
+          echo "---- dist tree (first 200) ----"
+          find dist -maxdepth 3 -type f | head -n 200 || true
 
       # Upload only what's needed to RUN in production
       - name: Upload build to droplet
