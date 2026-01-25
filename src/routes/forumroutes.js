@@ -11,6 +11,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const forum = express.Router();
 
+forum.get('/pitron-halomoṭ.org', (req,res)=>{
+ res.redirect("https://pitron-halomot.org")
+})
+
 /* ======================================================
    HOME PAGE — LIST FORUMS
 ====================================================== */

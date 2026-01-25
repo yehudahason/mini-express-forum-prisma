@@ -33,7 +33,10 @@
   </head>
   <body>
     <header class="main-header">
-      <h1><a href="/">Pitron halomot</a></h1>
+      <a href="<%= process.env.MAIN_SITE_URL %>"><img src="/home.png" alt=""></a>
+     <h1> 
+      <a href="<%= process.env.FORUM_URL %>">PITRON HALOMOT</a>
+     </h1>
 
       <nav class="auth-nav">
         <% if (user) { %>
