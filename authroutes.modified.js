@@ -3,11 +3,11 @@ import cookieParser from "cookie-parser";
 import { supabase } from "../lib/supabase.js";
 import { createUserNic } from "../utils/createUserNic.js";
 import { signToken } from "../utils/signToken.js";
-import { get } from "http";
 
 const router = express.Router();
 router.use(cookieParser());
 router.use(express.urlencoded({ extended: true }));
+router.use(express.json());
 
 // Views
 router.get("/auth/login", (req, res) => {
@@ -60,7 +60,11 @@ router.post("/auth/signup", async (req, res) => {
 
 
 router.post("/auth/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body ?? {};
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "חסר אימייל או סיסמה" });
+  }
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -68,11 +72,11 @@ router.post("/auth/login", async (req, res) => {
   });
 
   if (error) {
-    return res
-      .status(400)
-      .render("login", { title: "Login", error: error.message, success: null });
+    // keep message friendly (and don't leak too much detail)
+    return res.status(400).json({ error: "אימייל או סיסמה שגויים" });
   }
 
+  // set auth cookies (fetch will still receive Set-Cookie on same-origin requests)
   res.cookie("pbap", data.session.access_token, {
     httpOnly: true,
     sameSite: "lax",
@@ -86,15 +90,21 @@ router.post("/auth/login", async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
-  const cookieToken = signToken({  username: data.user.user_metadata.username });
+
+  const cookieToken = signToken({
+    username: data.user.user_metadata?.username,
+  });
+
   res.cookie("98479", cookieToken, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 365,
   });
-  return res.redirect("/");
+
+  return res.json({ success: true });
 });
+
 
 router.post("/auth/logout", (req, res) => {
   res.clearCookie("pbap");

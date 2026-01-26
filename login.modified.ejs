@@ -1,0 +1,69 @@
+<main>
+  <h2 class="page-title">התחברות</h2>
+
+  <p id="error-msg" class="empty" style="color:#fca5a5;"></p>
+<form method="POST" action="/auth/login" autocomplete="on">
+    <input
+      type="email"
+      name="email"
+      placeholder="אימייל"
+      required
+      dir="ltr"
+      inputmode="email"
+      autocomplete="email"
+    />
+
+    <input
+      type="password"
+      name="password"
+      placeholder="סיסמה"
+      required
+      dir="ltr"
+      autocomplete="current-password"
+      minlength="6"
+    />
+
+    <button type="submit">התחבר</button>
+  </form>
+
+  <div class="redirect-links" style="margin-top: 1.2rem;">
+    <a href="/auth/signup">אין לך חשבון? הרשמה</a>
+  </div>
+</main>
+
+
+<script>
+  const form = document.querySelector("form");
+  const errorMsg = document.getElementById("error-msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.textContent = "";
+
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+
+    const res = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      // credentials: "same-origin" // optional (default on same-origin)
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      errorMsg.textContent = "שגיאה לא צפויה. נסה שוב.";
+      return;
+    }
+
+    if (!res.ok) {
+      errorMsg.textContent = data.error || "שגיאה בהתחברות";
+      return;
+    }
+
+    window.location.href = "/";
+  });
+</script>
+

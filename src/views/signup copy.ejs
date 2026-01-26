@@ -4,8 +4,6 @@
   <% if (typeof error !== "undefined" && error) { %>
   <p class="empty" style="color: #fca5a5"><%= error %></p>
   <% } %>
-  <p id="error-msg" style="color:#fca5a5"></p>
-
 
   <form method="POST" action="/auth/signup" autocomplete="on">
     <input
@@ -53,32 +51,3 @@
     <a href="/auth/login">כבר יש לך חשבון? התחברות</a>
   </div>
 </main>
-
-<script>
-  const form = document.querySelector("form");
-  const errorMsg = document.getElementById("error-msg");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    errorMsg.textContent = "";
-
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
-
-    const res = await fetch("/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      errorMsg.textContent = data.error;
-      return;
-    }
-
-    // success → redirect
-    window.location.href = "/auth/login";
-  });
-</script>
