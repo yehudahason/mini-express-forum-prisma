@@ -1,12 +1,17 @@
 <main>
-  <h2 class="page-title">התחברות</h2>
+  <h2 class="page-title">עדכון אימייל</h2>
 
+  <!-- client-side error -->
   <p id="error-msg" class="empty" style="color:#fca5a5;"></p>
-<form method="POST" action="/auth/login" autocomplete="on">
+
+  <!-- client-side success -->
+  <p id="success-msg" class="empty" style="color:#86efac;"></p>
+
+  <form method="POST" action="/auth/update" autocomplete="on">
     <input
       type="email"
       name="email"
-      placeholder="אימייל"
+      placeholder="אימייל חדש"
       required
       dir="ltr"
       inputmode="email"
@@ -16,38 +21,38 @@
     <input
       type="password"
       name="password"
-      placeholder="סיסמה"
+      placeholder="סיסמה נוכחית"
       required
       dir="ltr"
       autocomplete="current-password"
       minlength="6"
     />
 
-    <button type="submit">התחבר</button>
+    <button type="submit">עדכן אימייל</button>
   </form>
 
   <div class="redirect-links" style="margin-top: 1.2rem;">
-    <a href="/auth/signup">אין לך חשבון? הרשמה</a>
+    <a href="/">חזרה</a>
   </div>
 </main>
-
 
 <script>
   const form = document.querySelector("form");
   const errorMsg = document.getElementById("error-msg");
+  const successMsg = document.getElementById("success-msg");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.textContent = "";
+    successMsg.textContent = "";
 
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
 
-    const res = await fetch("/auth/login", {
+    const res = await fetch("/auth/update-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      // credentials: "same-origin" // optional (default on same-origin)
     });
 
     let data;
@@ -59,11 +64,11 @@
     }
 
     if (!res.ok) {
-      errorMsg.textContent = data.error || "שגיאה בהתחברות";
+      errorMsg.textContent = data.error;
       return;
     }
 
-    window.location.href = "/";
+    successMsg.textContent =
+      "האימייל עודכן. ייתכן שנשלח מייל אימות.";
   });
 </script>
-

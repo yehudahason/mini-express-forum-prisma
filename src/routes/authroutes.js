@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase.js";
 import { createUserNic } from "../utils/createUserNic.js";
 import { signToken } from "../utils/signToken.js";
 import { get } from "http";
+import { updateUserByEmail } from "../utils/updateUser.js";
 
 const router = express.Router();
 router.use(cookieParser());
@@ -86,7 +87,7 @@ router.post("/auth/login", async (req, res) => {
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
-  const cookieToken = signToken({  username: data.user.user_metadata.username });
+  const cookieToken = signToken({ username: data.user.user_metadata.username });
   res.cookie("98479", cookieToken, {
     httpOnly: true,
     sameSite: "lax",
@@ -103,4 +104,27 @@ router.post("/auth/logout", (req, res) => {
   res.redirect("/");
 });
 
-export default router;
+
+//Upadte user in db 
+
+router.put("/users/update", async (req, res) => {
+  const { email, newEmail, username } = req.body;
+
+  try {
+    const user = await updateUserByEmail(email, newEmail, username);
+    res.json({ message: "User updated successfully", user });
+  } catch (err) {
+    const msg = err?.message || "Internal server error";
+
+    if (msg === "User not found") return res.status(404).json({ error: msg });
+    if (msg.includes("already exists")) return res.status(409).json({ error: msg });
+    if (msg.includes("required") || msg.includes("Nothing to update"))
+      return res.status(400).json({ error: msg });
+
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+export default router
