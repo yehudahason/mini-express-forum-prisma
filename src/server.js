@@ -16,10 +16,8 @@ import { getUser } from "./middleware/getUser.js";
 // Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_ANON_KEY,
 );
-
-
 
 const app = express();
 
@@ -27,10 +25,11 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3333",
   "http://localhost:4444",
+  "http://localhost:8000",
   "https://pitron-halomot.org",
   "https://www.pitron-halomot.org",
   "https://forum.pitron-halomot.org",
-  "https://lab.pitron-halomot.org"
+  "https://lab.pitron-halomot.org",
 ];
 
 // app.use(logRequests);
@@ -47,7 +46,7 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -75,7 +74,7 @@ app.use(
     maxAge: 0,
     etag: false,
     lastModified: false,
-  })
+  }),
 );
 
 // app.use(globalLimiter);
