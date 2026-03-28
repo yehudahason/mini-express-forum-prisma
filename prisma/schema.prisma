@@ -21,7 +21,10 @@ model User {
 
   @@map("Users")
 }
-
+model Test{
+  id   Int   @id @default(autoincrement())
+  title String
+}
 model Forum {
   id          Int     @id @default(autoincrement())
   name        String
