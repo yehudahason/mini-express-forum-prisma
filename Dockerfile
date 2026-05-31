@@ -1,31 +1,38 @@
-# --- Stage 1: Build ---
-FROM node:24-slim AS builder
-WORKDIR /usr/src/app
+# -----------------------
+# 1. Build stage
+# -----------------------
+FROM node:24-alpine AS builder
 
-# Install all dependencies (including devDependencies for build)
+WORKDIR /app
+
+# Copy package files first (better caching)
 COPY package*.json ./
+
+# Install all deps (need dev deps for tsc build)
 RUN npm install
 
-# Copy source and generate Prisma client
+# Copy source code
 COPY . .
-RUN npx prisma generate
+
+# Build TypeScript + copy views/public
 RUN npm run build
 
-# --- Stage 2: Production ---
-FROM node:24-slim
 
-WORKDIR /usr/src/app
+# -----------------------
+# 2. Production stage
+# -----------------------
+FROM node:24-alpine
 
-# Install production dependencies only
+WORKDIR /app
+
+# Install only production dependencies
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install --omit=dev
 
-# IMPORTANT: Copy the generated Prisma Client from the builder
-COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /usr/src/app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Copy built output
+COPY --from=builder /app/dist ./dist
 
-# Copy the compiled dist folder
-COPY --from=builder /usr/src/app/dist ./dist
+ENV NODE_ENV=production
 
 EXPOSE 3000
 

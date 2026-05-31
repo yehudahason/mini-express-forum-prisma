@@ -202,26 +202,117 @@ forum.get("/thread/:id", requireUser, async (req, res) => {
 ====================================================== */
 forum.get("/search", requireUser, async (req, res) => {
   const q = req.query.q?.trim();
-  if (!q)
+
+  if (!q) {
     return res.render("search", {
       query: "",
       results: [],
       title: "search",
-      user: req.user,
+      user: req.user || null,
     });
+  }
 
   try {
+    // -----------------------
+    // THREAD SEARCH
+    // -----------------------
+    const { data: matchingThreads, error: threadError } = await supabase
+      .from("threads")
+      .select("*")
+      .or(`title.ilike.%${q}%,content.ilike.%${q}%,author.ilike.%${q}%`)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (threadError) throw threadError;
+
+    // -----------------------
+    // REPLY SEARCH
+    // -----------------------
+    const { data: matchingReplies, error: replyError } = await supabase
+      .from("replies")
+      .select("*")
+      .or(`content.ilike.%${q}%,author.ilike.%${q}%`)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (replyError) throw replyError;
+
+    // -----------------------
+    // GROUP REPLIES BY THREAD
+    // -----------------------
+    const repliesByThread = {};
+    for (const r of matchingReplies || []) {
+      const tid = r.thread_id;
+
+      if (!repliesByThread[tid]) repliesByThread[tid] = [];
+
+      repliesByThread[tid].push({
+        ...r,
+        thread_id: r.thread_is,
+        created_at: r.created_at,
+      });
+    }
+
+    // -----------------------
+    // MERGE THREAD RESULTS
+    // -----------------------
+    const results = [];
+
+    for (const t of matchingThreads || []) {
+      results.push({
+        thread: {
+          ...t,
+          forum_id: t.forum_id,
+          created_at: t.created_at,
+        },
+        matchesInThread: true,
+        replyMatches: repliesByThread[t.id] || [],
+      });
+    }
+
+    // -----------------------
+    // FIND THREADS ONLY FROM REPLIES
+    // -----------------------
+    const missingThreadIds = Object.keys(repliesByThread)
+      .map(Number)
+      .filter((tid) => !matchingThreads.some((t) => t.id === tid));
+
+    if (missingThreadIds.length > 0) {
+      const { data: missingThreads, error: missingError } = await supabase
+        .from("threads")
+        .select("id,title,forum_id,author,created_at")
+        .in("id", missingThreadIds);
+
+      if (missingError) throw missingError;
+
+      for (const t of missingThreads || []) {
+        results.push({
+          thread: {
+            ...t,
+            forum_id: t.forum_id,
+            created_at: t.created_at,
+          },
+          matchesInThread: false,
+          replyMatches: repliesByThread[t.id] || [],
+        });
+      }
+    }
+
+    // -----------------------
+    // RENDER
+    // -----------------------
     res.render("search", {
       query: q,
-      results: [],
+      results,
       title: "search",
-      user: req.user,
+      formatDate: req.app.locals.formatDate,
+      user: req.user || null,
     });
   } catch (err) {
-    res.status(500).send("Search error");
+    console.error("Search error:", err);
+    res.status(500).send("Server error");
   }
 });
-
 /* ======================================================
    GET REPLY PAGE (New)
 ====================================================== */

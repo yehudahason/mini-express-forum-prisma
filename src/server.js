@@ -87,7 +87,6 @@ app.get("/me", (req, res) => {
 
   res.json(req.user);
 });
-console.log(process.env.DATABASE_URL);
 
 /* ======================================================
    MOUNT ROUTER
