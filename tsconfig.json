@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
-   
     "module": "ESNext",
     "moduleResolution": "node",
     "target": "ES2023",
-  
+
     "esModuleInterop": true,
     "allowJs": true,
     "checkJs": false,
@@ -26,5 +25,5 @@
     "noEmitOnError": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist" , "generated" ,"src/public" ,"src/views"]
+  "exclude": ["node_modules", "dist", "generated", "src/public", "src/views"]
 }

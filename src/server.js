@@ -5,19 +5,11 @@ import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 import cors from "cors";
 import { logRequests } from "./utils/logMiddleware.js";
-import { createClient } from "@supabase/supabase-js";
 import router from "./routes/authroutes.js";
 import cookieParser from "cookie-parser";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import forum from "./routes/forumroutes.js";
 import { get } from "http";
 import { getUser } from "./middleware/getUser.js";
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY,
-);
 
 const app = express();
 
@@ -65,6 +57,8 @@ app.use((req, res, next) => {
   res.locals.formatDate = app.locals.formatDate;
   next();
 });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 /* ==== EXPRESS SETUP ==== */
 app.use(express.urlencoded({ extended: true }));
 
@@ -93,28 +87,22 @@ app.get("/me", (req, res) => {
 
   res.json(req.user);
 });
+console.log(process.env.DATABASE_URL);
 
 /* ======================================================
    MOUNT ROUTER
 ====================================================== */
 app.use("/", router);
 app.use("/", forum);
-
 /* ======================================================
-   START SERVER
+START SERVER
 ====================================================== */
+
 const PORT = process.env.PORT || 4422;
-
-(async () => {
-  try {
-    // syncDB();
-    // await sequelize.authenticate();
-    // console.log("Connected to PostgreSQL via Sequelize!");
-
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Forum running on http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.error("DB connection error:", err);
-  }
-})();
+try {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Forum running on http://localhost:${PORT}`);
+  });
+} catch (err) {
+  console.error("Error starting server:", err);
+}

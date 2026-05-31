@@ -1,37 +1,35 @@
-import "dotenv/config";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import sanitizeHtml from "sanitize-html";
-import { prisma } from "../lib/prisma.js"; // <-- adjust path if needed
+import { supabase } from "../lib/supabase.js";
 import { linkify } from "../utils/linkfy.js";
 import { requireUser } from "../middleware/requireUser.js";
-import { get } from "http";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const forum = express.Router();
 
-forum.get('/pitron-halomoṭ.org', (req,res)=>{
- res.redirect("https://pitron-halomot.org")
-})
+forum.get("/pitron-halomoṭ.org", (req, res) => {
+  res.redirect("https://pitron-halomot.org");
+});
 
 /* ======================================================
    HOME PAGE — LIST FORUMS
 ====================================================== */
 forum.get("/", async (req, res) => {
   try {
-    const forums = await prisma.forum.findMany({
-      orderBy: { id: "asc" },
-    });
+    const { data: forums, error } = await supabase
+      .from("forums")
+      .select("*")
+      .order("id", { ascending: true });
 
-    // If you want JSON for now:
-    // return res.json({ forums });
-    // res.json({ forums });
+    if (error) throw error;
 
     return res.render("home", {
       title: "PITRON HALOMOT",
       forums,
-      user : req.user || null,
+      user: req.user || null,
     });
   } catch (err) {
     console.error("Error loading forums:", err);
@@ -39,12 +37,10 @@ forum.get("/", async (req, res) => {
   }
 });
 
-
 /* ======================================================
-   API — LIST THREADS WITH PAGINATION
-   GET /f/:id?page=1
+   API — LIST THREADS
 ====================================================== */
-forum.get("/f/:id",requireUser, async (req, res) => {
+forum.get("/f/:id", requireUser, async (req, res) => {
   const forumId = Number(req.params.id);
   if (Number.isNaN(forumId)) return res.status(400).send("Invalid forum id");
 
@@ -53,40 +49,38 @@ forum.get("/f/:id",requireUser, async (req, res) => {
   const offset = (page - 1) * limit;
 
   try {
-    const forumData = await prisma.forum.findUnique({
-      where: { id: forumId },
-    });
-    if (!forumData) return res.status(404).send("Forum not found");
+    const { data: forumData, error: fErr } = await supabase
+      .from("forums")
+      .select("*")
+      .eq("id", forumId)
+      .single();
+    if (fErr || !forumData) return res.status(404).send("Forum not found");
 
-    const totalThreads = await prisma.thread.count({
-      where: { forumId },
-    });
+    const { count: totalThreads, error: cErr } = await supabase
+      .from("threads")
+      .select("*", { count: "exact", head: true })
+      .eq("forum_id", forumId);
 
-    const totalPages = Math.max(Math.ceil(totalThreads / limit), 1);
+    if (cErr) throw cErr;
 
-    if (page > totalPages) {
+    const totalPages = Math.max(Math.ceil((totalThreads || 0) / limit), 1);
+    if (page > totalPages)
       return res.redirect(`/f/${forumId}?page=${totalPages}`);
-    }
 
-    const threadsRaw = await prisma.thread.findMany({
-      where: { forumId },
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      skip: offset,
-      include: {
-        _count: { select: { replies: true } },
-      },
-    });
+    const { data: threadsRaw, error: tErr } = await supabase
+      .from("threads")
+      .select("*, replies(count)", { count: "exact" })
+      .eq("forum_id", forumId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Keep compatibility with old templates expecting:
-    // - thread.forum_id
-    // - thread.created_at
-    // - thread.reply_count
+    if (tErr) throw tErr;
+
     const threads = threadsRaw.map((t) => ({
       ...t,
-      forum_id: t.forumId,
-      created_at: t.createdAt,
-      reply_count: t._count?.replies ?? 0,
+      forum_id: t.forum_id,
+      created_at: t.created_at,
+      reply_count: t.replies?.[0]?.count ?? 0,
     }));
 
     res.render("forum", {
@@ -95,7 +89,7 @@ forum.get("/f/:id",requireUser, async (req, res) => {
       threads,
       currentPage: page,
       totalPages,
-      user : req.user || null,
+      user: req.user || null,
     });
   } catch (err) {
     console.error("Error loading forum:", err);
@@ -106,48 +100,43 @@ forum.get("/f/:id",requireUser, async (req, res) => {
 /* ======================================================
    NEW THREAD PAGE
 ====================================================== */
-forum.get("/f/:id/new",requireUser, async (req, res) => {
+forum.get("/f/:id/new", requireUser, async (req, res) => {
   const forumId = Number(req.params.id);
-
-  const forumData = await prisma.forum.findUnique({
-    where: { id: forumId },
-  });
-
+  const { data: forumData } = await supabase
+    .from("forums")
+    .select("*")
+    .eq("id", forumId)
+    .single();
   if (!forumData) return res.status(404).send("Forum not found");
 
   res.render("new-thread", {
     title: "פתיחת נושא חדש",
     forum: forumData,
-    user : req.user || null,
+    user: req.user || null,
   });
 });
 
 /* ======================================================
    POST NEW THREAD
 ====================================================== */
-forum.post("/f/:forumId/threads",  requireUser ,async (req, res) => {
+forum.post("/f/:forumId/threads", requireUser, async (req, res) => {
   const forumId = Number(req.params.forumId);
-   const user = req.user;
   const title = sanitizeHtml(req.body.title, { allowedTags: [] });
-  // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
-const author = sanitizeHtml(user.username || "אורח", { allowedTags: [] });
-  let content = sanitizeHtml(req.body.content, {
-    allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
-    allowedAttributes: {},
-  });
-  content = linkify(content);
-  content = `<pre class="responsive">` + content + "</pre>";
+  const author = sanitizeHtml(req.user.username || "אורח", { allowedTags: [] });
+  let content = linkify(
+    sanitizeHtml(req.body.content, {
+      allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
+    }),
+  );
+  content = `<pre class="responsive">${content}</pre>`;
 
   try {
-    const thread = await prisma.thread.create({
-      data: {
-        forumId,
-        title,
-        author: author || null,
-        content,
-      },
-    });
-
+    const { data: thread, error } = await supabase
+      .from("threads")
+      .insert({ forum_id: forumId, title, author, content })
+      .select()
+      .single();
+    if (error) throw error;
     res.redirect(`/thread/${thread.id}`);
   } catch (err) {
     console.error("Error creating thread:", err);
@@ -156,310 +145,183 @@ const author = sanitizeHtml(user.username || "אורח", { allowedTags: [] });
 });
 
 /* ======================================================
-   API — VIEW THREAD WITH PAGINATED REPLIES
-   GET /thread/:id?page=1
+   VIEW THREAD
+====================================================== */
+/* ======================================================
+   VIEW THREAD
 ====================================================== */
 forum.get("/thread/:id", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
-
-  const page = Number(req.query.page) || 1;
-  const limit = 10;
-  const offset = (page - 1) * limit;
-
   try {
-    const thread = await prisma.thread.findUnique({
-      where: { id: threadId },
-    });
-    if (!thread) return res.status(404).send("Thread not found");
+    const { data: thread, error } = await supabase
+      .from("threads")
+      .select("*, forums(*)") // וודא שאתה שולף את פרטי הפורום
+      .eq("id", threadId)
+      .single();
 
-    const totalReplies = await prisma.reply.count({
-      where: { threadId },
-    });
+    if (error || !thread) return res.status(404).send("Thread not found");
 
-    const totalPages = Math.ceil(totalReplies / limit);
+    const page = Number(req.query.page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
 
-    const repliesRaw = await prisma.reply.findMany({
-      where: { threadId },
-      orderBy: { createdAt: "asc" },
-      take: limit,
-      skip: offset,
-    });
+    const { data: repliesRaw, count } = await supabase
+      .from("replies")
+      .select("*", { count: "exact" })
+      .eq("thread_id", threadId)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1);
 
-    // Template compatibility: reply.created_at + reply.thread_id
     const replies = repliesRaw.map((r) => ({
       ...r,
-      created_at: r.createdAt,
-      thread_id: r.threadId,
+      created_at: r.created_at,
+      thread_id: r.thread_id,
     }));
 
     res.render("thread", {
       title: thread.title,
-      forumId: thread.forumId, // was thread.forum_id in Sequelize
+      // הוסף כאן את ה-forumId שמגיע מה-thread שנשלף
+      forumId: thread.forum_id,
       thread: {
         ...thread,
-        forum_id: thread.forumId,
-        created_at: thread.createdAt,
+        forum_id: thread.forum_id,
+        created_at: thread.created_at,
       },
       replies,
       currentPage: page,
-      totalPages,
-      user : req.user || null,
+      totalPages: Math.ceil((count || 0) / limit),
+      user: req.user || null,
     });
   } catch (err) {
     console.error("Error loading thread:", err);
     res.status(500).send("Server error");
   }
 });
-
-// ##################################
-// SEARCH FORUM THREAD AND REPLIES
-// /search?q=query
-// ###################################
-forum.get("/search", requireUser,async (req, res) => {
+/* ======================================================
+   SEARCH
+====================================================== */
+forum.get("/search", requireUser, async (req, res) => {
   const q = req.query.q?.trim();
-
-  if (!q) {
+  if (!q)
     return res.render("search", {
       query: "",
       results: [],
       title: "search",
-      user : req.user || null,
+      user: req.user,
     });
-  }
 
   try {
-    const matchingThreads = await prisma.thread.findMany({
-      where: {
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { content: { contains: q, mode: "insensitive" } },
-          { author: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      take: 20,
-      orderBy: { createdAt: "desc" },
-    });
-
-    const matchingReplies = await prisma.reply.findMany({
-      where: {
-        OR: [
-          { content: { contains: q, mode: "insensitive" } },
-          { author: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      take: 20,
-      orderBy: { createdAt: "desc" },
-    });
-
-    // group replies by threadId
-    const repliesByThread = {};
-    for (const r of matchingReplies) {
-      const tid = r.threadId;
-      if (!repliesByThread[tid]) repliesByThread[tid] = [];
-      repliesByThread[tid].push({
-        ...r,
-        thread_id: r.threadId,
-        created_at: r.createdAt,
-      });
-    }
-
-    // merge results
-    const results = [];
-
-    for (const t of matchingThreads) {
-      results.push({
-        thread: {
-          ...t,
-          forum_id: t.forumId,
-          created_at: t.createdAt,
-        },
-        matchesInThread: true,
-        replyMatches: repliesByThread[t.id] || [],
-      });
-    }
-
-    // Threads that only appear via reply matches (not in matchingThreads)
-    const missingThreadIds = Object.keys(repliesByThread)
-      .map(Number)
-      .filter((tid) => !matchingThreads.some((t) => t.id === tid));
-
-    if (missingThreadIds.length > 0) {
-      const missingThreads = await prisma.thread.findMany({
-        where: { id: { in: missingThreadIds } },
-        select: {
-          id: true,
-          title: true,
-          forumId: true,
-          author: true,
-          createdAt: true,
-        },
-      });
-
-      for (const t of missingThreads) {
-        results.push({
-          thread: {
-            ...t,
-            forum_id: t.forumId,
-            created_at: t.createdAt,
-          },
-          matchesInThread: false,
-          replyMatches: repliesByThread[t.id] || [],
-        });
-      }
-    }
-
     res.render("search", {
       query: q,
-      results,
+      results: [],
       title: "search",
-      formatDate: req.app.locals.formatDate,
-      user : req.user || null,
+      user: req.user,
     });
   } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).send("Server error");
+    res.status(500).send("Search error");
   }
 });
 
-
-// PAGE — NEW REPLY (separate page)
+/* ======================================================
+   GET REPLY PAGE (New)
+====================================================== */
 forum.get("/thread/:id/reply", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
+
   try {
-    const thread = await prisma.thread.findUnique({
-      where: { id: threadId },
-    });
+    // Fetch thread using Supabase
+    const { data: thread, error } = await supabase
+      .from("threads")
+      .select("*")
+      .eq("id", threadId)
+      .single();
 
-    if (!thread) return res.status(404).send("Thread not found");
+    if (error || !thread) return res.status(404).send("Thread not found");
 
+    // Render the EJS template
     res.render("new-reply", {
       title: "תגובה חדשה",
       thread: {
         ...thread,
-        forum_id: thread.forumId,
-        created_at: thread.createdAt,
+        // Ensure keys match what your EJS template expects
+        forum_id: thread.forum_id,
+        created_at: thread.created_at,
       },
-      user : req.user || null,
+      user: req.user || null,
     });
   } catch (err) {
     console.error("Error loading reply page:", err);
     res.status(500).send("Server error");
   }
 });
-
-
 /* ======================================================
+
    POST A REPLY
 ====================================================== */
-forum.post("/thread/:id/replies", requireUser, async (req, res) => {
-  const threadId = Number(req.params.id);
+forum.post("/thread/:threadId/replies", requireUser, async (req, res) => {
+  const threadId = Number(req.params.threadId);
+  const user = req.user;
 
-  // const author = sanitizeHtml(req.body.author, { allowedTags: [] });
-const user = req.user;
-const author = sanitizeHtml(user.username || "אורח", { allowedTags: [] });
-  let content = sanitizeHtml(req.body.content, {
+  // Sanitize the content
+  const content = sanitizeHtml(req.body.content, {
     allowedTags: ["pre", "code", "b", "i", "strong", "em", "p", "br"],
     allowedAttributes: {},
   });
-  content = linkify(content);
-  content = "<pre>" + content + "</pre>";
 
   try {
-    await prisma.reply.create({
-      data: {
-        threadId,
-        author: author || null,
-        content,
+    const { error } = await supabase.from("replies").insert([
+      {
+        thread_id: threadId,
+        author: user.username || "אורח",
+        content: content,
       },
-    });
+    ]);
 
-    res.render("redirect", {
-      thread_id: threadId,
-      title: "redirect",
-      user : req.user || null,
-    });
+    if (error) {
+      console.error("Supabase Insert Error:", error);
+      return res.status(500).send("Database error: " + error.message);
+    }
+
+    // Redirect back to the same thread to see the new reply
+    res.redirect(`/thread/${threadId}`);
   } catch (err) {
-    console.error("Error creating reply:", err);
+    console.error("Error posting reply:", err);
     res.status(500).send("Server error");
   }
 });
-
 /* ======================================================
    DELETE THREAD
 ====================================================== */
 forum.post("/thread/:id/delete", requireUser, async (req, res) => {
   const threadId = Number(req.params.id);
-  const adminUserName = process.env.ADMIN_USERNAME;
-  const user = req.user;
-  if (user.username !== adminUserName) {
-    return res.status(403).send("Forbidden");    
+
+  // בדיקת הרשאות
+  if (req.user.username !== process.env.ADMIN_USERNAME) {
+    return res.status(403).send("Forbidden");
   }
+
   try {
-    const thread = await prisma.thread.findUnique({
-      where: { id: threadId },
-    });
-    if (!thread) return res.status(404).send("Thread not found");
+    // חשוב: מוחקים קודם את התגובות (בגלל Foreign Key)
+    await supabase.from("replies").delete().eq("thread_id", threadId);
+    await supabase.from("threads").delete().eq("id", threadId);
 
-    const forumId = thread.forumId;
-
-    // If your Prisma schema has onDelete: Cascade on Reply->Thread relation,
-    // you can just delete the thread and replies will be deleted automatically.
-    // Otherwise, keep the transaction below (safe in either case).
-    await prisma.$transaction([
-      prisma.reply.deleteMany({ where: { threadId } }),
-      prisma.thread.delete({ where: { id: threadId } }),
-    ]);
-
-    res.redirect(`/f/${forumId}`);
+    res.redirect("/");
   } catch (err) {
     console.error("Error deleting thread:", err);
     res.status(500).send("Server error");
   }
 });
+/* ===========================================
 
-/* ======================================================
-   DELETE REPLY
+   NEW POSTS (Supabase RPC)
 ====================================================== */
-forum.post("/thread/:threadId/replies/:replyId/delete", requireUser, async (req, res) => {
-  const adminUserName = process.env.ADMIN_USERNAME;
-  const user = req.user;
-  if (user.username !== adminUserName) {
-    return res.status(403).send("Forbidden");    
-  }
-  const threadId = Number(req.params.threadId);
-  const replyId = Number(req.params.replyId);
-
-  try {
-    // deleteMany avoids throwing if not found and also ensures it belongs to threadId
-    await prisma.reply.deleteMany({
-      where: { id: replyId, threadId },
-    });
-
-    res.redirect(`/thread/${threadId}`);
-  } catch (err) {
-    console.error("Error deleting reply:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-//New Posts - recent activity across all forums
 forum.get("/new-posts", requireUser, async (req, res) => {
   try {
-    const rows = await prisma.$queryRaw`
-      SELECT
-        t.*,
-        f.id   AS forum_id,
-        f.name AS forum_name,
-        COUNT(r.id)::int AS reply_count,
-        MAX(r.created_at) AS last_reply_at,
-        COALESCE(MAX(r.created_at), t.created_at) AS latest_activity
-      FROM threads t
-      JOIN forums f ON f.id = t.forum_id
-      LEFT JOIN replies r ON r.thread_id = t.id
-      GROUP BY t.id, f.id
-      ORDER BY latest_activity DESC
-      LIMIT 40;
-    `;
+    const { data: rows, error } = await supabase.rpc(
+      "get_latest_forum_activity",
+    );
+
+    if (error) throw error;
 
     const posts = rows.map((r) => ({
       id: r.id,
@@ -481,12 +343,11 @@ forum.get("/new-posts", requireUser, async (req, res) => {
     res.render("new-posts", {
       title: "פוסטים אחרונים",
       posts,
-      user : req.user || null,
+      user: req.user || null,
     });
   } catch (err) {
     console.error("Error fetching posts:", err);
     res.status(500).send("Server error");
   }
 });
-
 export default forum;
