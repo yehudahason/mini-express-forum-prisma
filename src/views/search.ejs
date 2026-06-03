@@ -59,7 +59,13 @@
           <% item.replyMatches.forEach(r => { %>
           <li class="reply-match">
             <strong><%= r.author || "אנונימי" %>:</strong>
-            <span><%- r.content %></span>
+            <span>
+              <a href="/thread/<%= item.thread.id %>">
+               
+                <%= r.content %>
+              </a>
+              
+            </span>
             <div class="meta-small"><%= formatDate(r.created_at) %></div>
           </li>
           <% }) %>

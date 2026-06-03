@@ -71,7 +71,7 @@ forum.get("/f/:id", requireUser, async (req, res) => {
       .from("threads")
       .select("*, replies(count)", { count: "exact" })
       .eq("forum_id", forumId)
-      .order("created_at", { ascending: false })
+      .order("updated_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (tErr) throw tErr;
@@ -80,6 +80,9 @@ forum.get("/f/:id", requireUser, async (req, res) => {
       ...t,
       forum_id: t.forum_id,
       created_at: t.created_at,
+      updated_at: t.updated_at,
+      author: t.author,
+
       reply_count: t.replies?.[0]?.count ?? 0,
     }));
 
@@ -144,9 +147,6 @@ forum.post("/f/:forumId/threads", requireUser, async (req, res) => {
   }
 });
 
-/* ======================================================
-   VIEW THREAD
-====================================================== */
 /* ======================================================
    VIEW THREAD
 ====================================================== */

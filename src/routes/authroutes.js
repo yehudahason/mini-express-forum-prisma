@@ -53,6 +53,7 @@ router.post("/auth/signup", async (req, res) => {
 
   if (error) {
     return res.status(400).json({ error: error.message });
+    console.error("Error signing up:", error);
   }
 
   return res.json({ success: true });
