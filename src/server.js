@@ -16,6 +16,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3333",
+  "http://127.0.0.1:3333",
   "http://localhost:4444",
   "http://localhost:8000",
   "https://pitron-halomot.org",

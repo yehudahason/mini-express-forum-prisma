@@ -24,7 +24,7 @@ export function requireUser(req, res, next) {
 
     req.user = payload;
     // optional if you want views to auto-see it:
-    // res.locals.user = payload;
+    res.locals.user = payload;
 
     return next();
   } catch (error) {
